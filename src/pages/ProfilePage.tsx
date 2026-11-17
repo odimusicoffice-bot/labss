@@ -119,20 +119,10 @@ export default function ProfilePage({
   const [loadingSaved, setLoadingSaved] = useState(true);
 
   const fetchRequests = useCallback(async () => {
-    if (!user) return;
-    setLoadingRequests(true);
-    const { data, error } = await supabase
-      .from('user_requests')
-      .select('id, type, title, description, status, target_view, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    if (error) {
-      setRequests([]);
-    } else {
-      setRequests((data ?? []) as UserRequest[]);
-    }
+    // TODO: connect Supabase
+    setRequests([]);
     setLoadingRequests(false);
-  }, [user]);
+  }, []);
 
   const fetchSavedEvents = useCallback(async () => {
     if (!user) return;

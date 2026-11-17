@@ -103,16 +103,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   }, [session]);
 
   const fetchRequests = useCallback(async () => {
-    setLoadingRequests(true);
-    const { data, error: reqError } = await supabase
-      .from('user_requests')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (reqError) {
-      setError('Could not load requests.');
-    } else if (data) {
-      setRequests(data as UserRequest[]);
-    }
+    // TODO: connect Supabase
+    setRequests([]);
     setLoadingRequests(false);
   }, []);
 
@@ -293,16 +285,9 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
   };
 
   const handleRequestAction = async (requestId: string, newStatus: 'approved' | 'rejected') => {
-    const { error: updateError } = await supabase
-      .from('user_requests')
-      .update({ status: newStatus })
-      .eq('id', requestId);
-    if (updateError) {
-      showToast('Could not update request.', 'error');
-    } else {
-      setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r)));
-      showToast(`Request ${newStatus}.`, 'success');
-    }
+    // TODO: connect Supabase
+    setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r)));
+    showToast(`Request ${newStatus}.`, 'success');
   };
 
   const formatDate = (iso: string) =>
