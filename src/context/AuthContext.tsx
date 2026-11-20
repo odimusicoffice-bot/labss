@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, name:username, email, role, bio, avatar_url, cover_url, bonuses')
+      .select('id, name:username, email, role, roles, bio, avatar_url, cover_url, bonuses')
       .eq('id', userId)
       .maybeSingle();
     setProfile(data as Profile | null);
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({ id: userId, username: name });
+      .insert({ id: userId, username: name, email });
 
     if (profileError) return { error: profileError.message };
 
