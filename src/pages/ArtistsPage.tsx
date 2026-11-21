@@ -1,48 +1,21 @@
 import { ArrowLeft, ArrowUpRight, Globe2, Star } from 'lucide-react';
+import { useContent } from '@/context/ContentContext';
 
 interface ArtistsPageProps {
   onBack: () => void;
   onViewProfile: () => void;
 }
 
-interface ArtistStub {
-  id: number;
-  name: string;
-  image: string;
-  highlighted?: boolean;
-}
+export default function ArtistsPage({ onBack, onViewProfile }: ArtistsPageProps) {
+  const { artists } = useContent();
 
-const odiArtists: ArtistStub[] = [
-  { id: 1, name: 'ODI J', image: '/images/artists/IMG_0736.jpeg', highlighted: true },
-  {
-    id: 2,
-    name: 'Artist 2',
-    image: 'https://images.pexels.com/photos/18528273/pexels-photo-18528273.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
-  },
-  {
-    id: 3,
-    name: 'Artist 3',
-    image: 'https://images.pexels.com/photos/19199566/pexels-photo-19199566.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
-  },
-];
+  const odiArtists = artists
+    .filter((a) => a.category === 'odi-a')
+    .map((a) => ({ id: a.id, name: a.alias, image: a.photo, highlighted: a.id === 1 }));
 
-const globalArtists: ArtistStub[] = [
-  {
-    id: 4,
-    name: 'Artist 4',
-    image: 'https://images.pexels.com/photos/20052153/pexels-photo-20052153.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
-  },
-  {
-    id: 5,
-    name: 'Artist 5',
-    image: 'https://images.pexels.com/photos/20052156/pexels-photo-20052156.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
-  },
-  {
-    id: 6,
-    name: 'Artist 6',
-    image: 'https://images.pexels.com/photos/29516587/pexels-photo-29516587.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
-  },
-];
+  const globalArtists = artists
+    .filter((a) => a.category === 'global')
+    .map((a) => ({ id: a.id, name: a.alias, image: a.photo }));
 
 const monochromeFilter = { filter: 'grayscale(100%) contrast(1.1)' };
 

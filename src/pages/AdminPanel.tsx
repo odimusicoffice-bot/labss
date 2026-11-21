@@ -2,38 +2,30 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   ArrowLeft, Copy, Check, Trash2, Loader2, ShieldAlert, KeyRound, X, Save,
   ImagePlus, LayoutDashboard, FileEdit, Users, Inbox, Check as CheckIcon,
-  AlertCircle, ChevronDown,
+  AlertCircle, ChevronDown, Star, LifeBuoy, BookOpen,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth, type Profile } from '@/context/AuthContext';
 import { defaultSiteContent, type SiteContent } from '@/data/siteContent';
+import { useContent } from '@/context/ContentContext';
+import ManageArtistsTab from '@/pages/admin/ManageArtistsTab';
+import SupportContactsTab from '@/pages/admin/SupportContactsTab';
+import AboutTab from '@/pages/admin/AboutTab';
+import RequestsTab from '@/pages/admin/RequestsTab';
 
 interface AdminPanelProps {
   onBack: () => void;
 }
 
-type Tab = 'overview' | 'content' | 'users' | 'requests';
-
-interface UserRequest {
-  id: string;
-  user_id: string;
-  type: 'event' | 'artist_submission' | 'vip_verification' | 'audition';
-  status: 'pending' | 'approved' | 'rejected';
-  payload: Record<string, string>;
-  created_at: string;
-}
-
-const requestTypeLabels: Record<UserRequest['type'], string> = {
-  event: 'Event Request',
-  artist_submission: 'Artist Submission',
-  vip_verification: 'VIP Verification',
-  audition: 'Audition',
-};
+type Tab = 'overview' | 'content' | 'users' | 'artists' | 'support' | 'about' | 'requests';
 
 const tabs: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
   { id: 'content', label: 'Site Content', icon: FileEdit },
   { id: 'users', label: 'Manage Users', icon: Users },
+  { id: 'artists', label: 'Artists', icon: Star },
+  { id: 'support', label: 'Support', icon: LifeBuoy },
+  { id: 'about', label: 'About Us', icon: BookOpen },
   { id: 'requests', label: 'Requests', icon: Inbox },
 ];
 
@@ -47,11 +39,10 @@ interface Toast {
 
 export default function AdminPanel({ onBack }: AdminPanelProps) {
   const { session } = useAuth();
+  const { artists, consolidatedRequests } = useContent();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [users, setUsers] = useState<Profile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [requests, setRequests] = useState<UserRequest[]>([]);
-  const [loadingRequests, setLoadingRequests] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -102,13 +93,7 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     setLoadingUsers(false);
   }, [session]);
 
-  const fetchRequests = useCallback(async () => {
-    // TODO: connect Supabase
-    setRequests([]);
-    setLoadingRequests(false);
-  }, []);
-
-  const fetchStats = useCallback(async () => {
+const fetchStats = useCallback(async () => {
     const [{ count: tCount }, { count: nCount }] = await Promise.all([
       supabase.from('tracks').select('*', { count: 'exact', head: true }),
       supabase.from('notes').select('*', { count: 'exact', head: true }),
@@ -119,9 +104,8 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
 
   useEffect(() => {
     fetchUsers();
-    fetchRequests();
     fetchStats();
-  }, [fetchUsers, fetchRequests, fetchStats]);
+  }, [fetchUsers, fetchStats]);
 
   useEffect(() => {
     let mounted = true;
@@ -284,16 +268,10 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
     setResettingId(null);
   };
 
-  const handleRequestAction = async (requestId: string, newStatus: 'approved' | 'rejected') => {
-    // TODO: connect Supabase
-    setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r)));
-    showToast(`Request ${newStatus}.`, 'success');
-  };
-
-  const formatDate = (iso: string) =>
+const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
-  const pendingRequests = requests.filter((r) => r.status === 'pending');
+  const pendingRequests = consolidatedRequests.filter((r) => r.status === 'pending');
   const adminCount = users.filter((u) => u.role === 'admin').length;
 
   return (
@@ -355,11 +333,10 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Total Users" value={users.length} />
               <StatCard label="Admins" value={adminCount} />
+              <StatCard label="Artists" value={artists.length} />
               <StatCard label="Tracks" value={trackCount} />
               <StatCard label="Notes" value={notesCount} />
-              <div className="sm:col-span-2 lg:col-span-4">
-                <StatCard label="Pending Requests" value={pendingRequests.length} highlight={pendingRequests.length > 0} />
-              </div>
+              <StatCard label="Pending Requests" value={pendingRequests.length} highlight={pendingRequests.length > 0} />
             </div>
           )}
 
@@ -549,77 +526,17 @@ export default function AdminPanel({ onBack }: AdminPanelProps) {
             </>
           )}
 
-          {/* Requests */}
-          {activeTab === 'requests' && (
-            <>
-              {loadingRequests ? (
-                <div className="mt-12 flex justify-center">
-                  <Loader2 size={24} className="animate-spin text-[#888888]" />
-                </div>
-              ) : requests.length === 0 ? (
-                <div className="mt-12 text-center">
-                  <Inbox size={32} className="mx-auto text-[#555555]" strokeWidth={1.5} />
-                  <p className="mt-4 text-sm text-[#888888]">No requests yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {requests.map((req) => (
-                    <div
-                      key={req.id}
-                      className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-[#3B82F6]">
-                              {requestTypeLabels[req.type]}
-                            </span>
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
-                              req.status === 'pending'
-                                ? 'bg-[#F59E0B]/15 text-[#F59E0B]'
-                                : req.status === 'approved'
-                                ? 'bg-[#22C55E]/15 text-[#22C55E]'
-                                : 'bg-[#EF4444]/15 text-[#EF4444]'
-                            }`}>
-                              {req.status}
-                            </span>
-                          </div>
-                          <div className="mt-3 space-y-1">
-                            {Object.entries(req.payload).map(([key, value]) => (
-                              <div key={key} className="flex gap-2 text-sm">
-                                <span className="text-[#555555] capitalize">{key.replace(/_/g, ' ')}:</span>
-                                <span className="text-[#CCCCCC] truncate">{value}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <p className="mt-2 text-xs text-[#555555]">{formatDate(req.created_at)}</p>
-                        </div>
+          {/* Manage Artists */}
+          {activeTab === 'artists' && <ManageArtistsTab />}
 
-                        {req.status === 'pending' && (
-                          <div className="flex shrink-0 items-center gap-2">
-                            <button
-                              onClick={() => handleRequestAction(req.id, 'approved')}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-[#22C55E]/30 bg-[#22C55E]/10 px-3 py-2 text-xs font-medium text-[#22C55E] transition-all hover:bg-[#22C55E]/20"
-                            >
-                              <CheckIcon size={13} strokeWidth={2} />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleRequestAction(req.id, 'rejected')}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-[#EF4444]/30 bg-[#EF4444]/10 px-3 py-2 text-xs font-medium text-[#EF4444] transition-all hover:bg-[#EF4444]/20"
-                            >
-                              <X size={13} strokeWidth={2} />
-                              Reject
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+          {/* Support & Contacts */}
+          {activeTab === 'support' && <SupportContactsTab />}
+
+          {/* About Us */}
+          {activeTab === 'about' && <AboutTab />}
+
+          {/* Requests */}
+          {activeTab === 'requests' && <RequestsTab />}
         </div>
       </div>
 
