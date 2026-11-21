@@ -1,18 +1,21 @@
 import { ArrowLeft, Mail, MessageCircle, Send, Instagram, Youtube } from 'lucide-react';
+import { useContent } from '@/context/ContentContext';
 
 interface ContactsPageProps {
   onBack: () => void;
 }
 
-const contacts = [
-  { icon: Mail, label: 'Email', value: 'odimusic.office@gmail.com', color: '#3B82F6' },
-  { icon: MessageCircle, label: 'Telegram', value: '@odilabs', color: '#3B82F6' },
-  { icon: Send, label: 'Discord', value: 'odi-labs', color: '#3B82F6' },
-  { icon: Instagram, label: 'Instagram', value: '@odi.labs', color: '#3B82F6' },
-  { icon: Youtube, label: 'YouTube', value: 'ODI LABS', color: '#3B82F6' },
-];
-
 export default function ContactsPage({ onBack }: ContactsPageProps) {
+  const { supportContent } = useContent();
+
+  const contacts = [
+    { icon: Mail, label: 'Email', value: supportContent.email, color: '#3B82F6' },
+    { icon: MessageCircle, label: 'Telegram', value: supportContent.telegram, color: '#3B82F6' },
+    { icon: Send, label: 'Discord', value: supportContent.discord, color: '#3B82F6' },
+    { icon: Instagram, label: 'Instagram', value: supportContent.instagram, color: '#3B82F6' },
+    { icon: Youtube, label: 'YouTube', value: supportContent.youtube, color: '#3B82F6' },
+  ];
+
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] px-6 pb-28 pt-8 sm:px-10">
       <div className="mx-auto max-w-2xl">
@@ -27,7 +30,7 @@ export default function ContactsPage({ onBack }: ContactsPageProps) {
         <h1 className="font-anton text-5xl uppercase leading-none text-white sm:text-6xl">
           Contacts
         </h1>
-        <p className="mt-3 text-sm text-[#888888]">Get in touch with the ODI LABS team.</p>
+        <p className="mt-3 text-sm text-[#888888]">{supportContent.contactsIntro}</p>
 
         <div className="mt-10 space-y-3">
           {contacts.map((contact) => {

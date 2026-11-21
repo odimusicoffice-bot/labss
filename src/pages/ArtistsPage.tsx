@@ -6,20 +6,15 @@ interface ArtistsPageProps {
   onViewProfile: () => void;
 }
 
-export default function ArtistsPage({ onBack, onViewProfile }: ArtistsPageProps) {
-  const { artists } = useContent();
-
-  const odiArtists = artists
-    .filter((a) => a.category === 'odi-a')
-    .map((a) => ({ id: a.id, name: a.alias, image: a.photo, highlighted: a.id === 1 }));
-
-  const globalArtists = artists
-    .filter((a) => a.category === 'global')
-    .map((a) => ({ id: a.id, name: a.alias, image: a.photo }));
+interface ArtistDisplay {
+  id: number;
+  name: string;
+  image: string;
+  highlighted?: boolean;
+}
 
 const monochromeFilter = { filter: 'grayscale(100%) contrast(1.1)' };
 
-// Crops the ODI J source screenshot to its portrait area, hiding the baked-in UI text and icons
 const odiJCropStyle = { top: '-12%', height: '200%' };
 
 function ArtistCard({
@@ -27,7 +22,7 @@ function ArtistCard({
   category,
   onViewProfile,
 }: {
-  artist: ArtistStub;
+  artist: ArtistDisplay;
   category: string;
   onViewProfile: () => void;
 }) {
@@ -80,7 +75,7 @@ function ArtistSection({
   title: string;
   category: string;
   icon: typeof Star;
-  artists: ArtistStub[];
+  artists: ArtistDisplay[];
   onViewProfile: () => void;
 }) {
   return (
@@ -104,6 +99,16 @@ function ArtistSection({
 }
 
 export default function ArtistsPage({ onBack, onViewProfile }: ArtistsPageProps) {
+  const { artists } = useContent();
+
+  const odiArtists: ArtistDisplay[] = artists
+    .filter((a) => a.category === 'odi-a')
+    .map((a) => ({ id: a.id, name: a.alias, image: a.photo, highlighted: a.id === 1 }));
+
+  const globalArtists: ArtistDisplay[] = artists
+    .filter((a) => a.category === 'global')
+    .map((a) => ({ id: a.id, name: a.alias, image: a.photo }));
+
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] pb-28 pt-8">
       <div className="mx-auto max-w-5xl px-6 sm:px-10">

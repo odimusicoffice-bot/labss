@@ -25,6 +25,7 @@ import RosterSection from '@/components/RosterSection';
 import EditProfilePage from '@/pages/EditProfilePage';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { PlayerProvider } from '@/context/PlayerContext';
+import { ContentProvider } from '@/context/ContentContext';
 import MusicPlayer from '@/components/MusicPlayer';
 
 type View =
@@ -288,10 +289,12 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <PlayerProvider>
-        <AppContent />
-        <MusicPlayer />
-      </PlayerProvider>
+      <ContentProvider>
+        <PlayerProvider>
+          <AppContent />
+          <MusicPlayer />
+        </PlayerProvider>
+      </ContentProvider>
     </AuthProvider>
   );
 }

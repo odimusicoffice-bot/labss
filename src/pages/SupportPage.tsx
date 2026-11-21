@@ -2,50 +2,14 @@ import { useState } from 'react';
 import { ArrowLeft, Send, Check, ShieldCheck } from 'lucide-react';
 import FaqItem from '@/components/FaqItem';
 import VerificationModal from '@/components/VerificationModal';
+import { useContent } from '@/context/ContentContext';
 
 interface SupportPageProps {
   onBack: () => void;
 }
 
-const faqs = [
-  {
-    question: 'Profile',
-    answer:
-      'Your profile is your home base on ODI LABS. Open it to edit your name, bio and photo, and to see your activity.',
-  },
-  {
-    question: 'Cloud',
-    answer:
-      'Cloud is your music library. Upload tracks, star your favourites and play them back from anywhere in the app.',
-  },
-  {
-    question: 'Notes',
-    answer:
-      'Notes is where you write down your thoughts about the events you attend. Link a note to an event on the map to find it again later.',
-  },
-  {
-    question: 'Map',
-    answer:
-      'The Map shows events around the world. Tap a marker to see the details and mark the events you plan to go to.',
-  },
-  {
-    question: 'Artists',
-    answer:
-      'Browse the ODI LABS roster, open an artist profile and support them directly with a donation.',
-  },
-  {
-    question: 'Bonuses',
-    answer:
-      'Bonuses are rewards for being active on ODI LABS. Check your profile to see which bonuses you have unlocked.',
-  },
-  {
-    question: 'First Star',
-    answer:
-      'Starring your first track in Cloud is a small milestone. Your starred tracks show up in Radar, so you can find them quickly.',
-  },
-];
-
 export default function SupportPage({ onBack }: SupportPageProps) {
+  const { supportContent } = useContent();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -74,12 +38,12 @@ export default function SupportPage({ onBack }: SupportPageProps) {
 
         <h1 className="font-anton text-4xl uppercase text-white sm:text-5xl">Support</h1>
         <p className="mt-3 text-sm text-[#888888]">
-          Find quick answers below, or send us a message.
+          {supportContent.supportIntro}
         </p>
 
         <section className="mt-10 space-y-3">
-          {faqs.map((faq) => (
-            <FaqItem key={faq.question} question={faq.question} answer={faq.answer} />
+          {supportContent.faqs.map((faq) => (
+            <FaqItem key={faq.id} question={faq.question} answer={faq.answer} />
           ))}
         </section>
 
